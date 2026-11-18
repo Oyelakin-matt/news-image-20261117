@@ -16,5 +16,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
 
 os.makedirs(OUT_DIR, exist_ok=True)
-shutil.copyfile(os.path.join(HERE, "entry.png"),
-                os.path.join(OUT_DIR, "entry.png"))
+src = os.path.join(HERE, "entry.png")
+dst = os.path.join(OUT_DIR, "entry.png")
+shutil.copyfile(src, dst)
+
+# The gate takes a whole PNG, so refuse to finish on a truncated copy:
+# PNG magic at the start, IEND chunk at the end.
+with open(dst, "rb") as f:
+    data = f.read()
+if not data.startswith(b"\x89PNG\r\n\x1a\n") or not data.rstrip().endswith(b"IEND\xaeB`\x82"):
+    raise SystemExit("entry.png is not a whole PNG")
